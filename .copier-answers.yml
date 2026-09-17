@@ -1,0 +1,18 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.6.5
+_src_path: https://github.com/jupyterlab/extension-template
+advanced: true
+author_email: luca.ringhausen@h-brs.de
+author_name: Luca Ringhausen
+has_ai_rules: false
+has_binder: false
+has_settings: true
+kind: frontend
+labextension_name: '@e2xgrader/restricted-notebook-extension'
+project_short_description: A JupyterLab notebook-extension that restricts the user
+    e.g. for use in exams or similar environments.
+python_name: e2xgrader_restricted_notebook_extension
+repository: https://github.com/e2xgrader/e2xgrader-restricted-notebook-extension
+test: true
+yarn_linker: node-modules
+
