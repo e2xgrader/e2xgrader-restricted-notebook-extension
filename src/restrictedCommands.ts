@@ -35,6 +35,7 @@ import {
   stopIcon
 } from '@jupyterlab/ui-components';
 import { IMainMenu } from '@jupyterlab/mainmenu';
+import {RestrictedNotebookActions} from "./restrictedActions";
 
 /**
  * Add the notebook commands to the application's command registry.
@@ -88,11 +89,11 @@ export function addRestrictedCommands(
     const stripOutputs = !!settings?.get('pasteCodeCellsWithoutOutput')
       ?.composite;
     if (settings?.get('useSystemClipboardForCells').composite as boolean) {
-      await NotebookActions.pasteFromSystemClipboard(notebook, mode, {
+      await RestrictedNotebookActions.pasteFromSystemClipboard(notebook, mode, {
         stripOutputs
       });
     } else {
-      NotebookActions.paste(notebook, mode, { stripOutputs });
+      RestrictedNotebookActions.paste(notebook, mode, { stripOutputs });
     }
   };
 
@@ -668,7 +669,7 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        return NotebookActions.changeCellType(
+        return RestrictedNotebookActions.changeCellType(
           current.content,
           'code',
           translator
@@ -689,7 +690,7 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        return NotebookActions.changeCellType(
+        return RestrictedNotebookActions.changeCellType(
           current.content,
           'markdown',
           translator
@@ -710,7 +711,7 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        return NotebookActions.changeCellType(
+        return RestrictedNotebookActions.changeCellType(
           current.content,
           'raw',
           translator
@@ -747,9 +748,9 @@ export function addRestrictedCommands(
 
       if (current) {
         if (settings?.get('useSystemClipboardForCells').composite as boolean) {
-          return await NotebookActions.cutToSystemClipboard(current.content);
+          return await RestrictedNotebookActions.cutToSystemClipboard(current.content);
         }
-        return NotebookActions.cut(current.content);
+        return RestrictedNotebookActions.cut(current.content);
       }
     },
     icon: args => (args.toolbar ? cutIcon : undefined),
@@ -795,9 +796,9 @@ export function addRestrictedCommands(
 
       if (current) {
         if (settings?.get('useSystemClipboardForCells').composite as boolean) {
-          return await NotebookActions.copyToSystemClipboard(current.content);
+          return await RestrictedNotebookActions.copyToSystemClipboard(current.content);
         }
-        return NotebookActions.copy(current.content);
+        return RestrictedNotebookActions.copy(current.content);
       }
     },
     icon: args => (args.toolbar ? copyIcon : undefined),
@@ -924,7 +925,7 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        NotebookActions.duplicate(current.content, 'belowSelected');
+        RestrictedNotebookActions.duplicate(current.content, 'belowSelected');
       }
     },
     icon: args => (args.toolbar ? duplicateIcon : undefined),
@@ -1000,7 +1001,7 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        return NotebookActions.deleteCells(current.content);
+        return RestrictedNotebookActions.deleteCells(current.content);
       }
     },
     isEnabled: args => {
@@ -1190,7 +1191,7 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        return NotebookActions.splitCell(current.content, translator);
+        return RestrictedNotebookActions.splitCell(current.content, translator);
       }
     },
     isEnabled,
@@ -1210,7 +1211,7 @@ export function addRestrictedCommands(
         const addExtraLine =
           (settings?.get('addExtraLineOnCellMerge').composite as boolean) ??
           true;
-        return NotebookActions.mergeCells(
+        return RestrictedNotebookActions.mergeCells(
           current.content,
           false,
           addExtraLine,
@@ -1244,7 +1245,7 @@ export function addRestrictedCommands(
         const addExtraLine =
           (settings?.get('addExtraLineOnCellMerge').composite as boolean) ??
           true;
-        return NotebookActions.mergeCells(
+        return RestrictedNotebookActions.mergeCells(
           current.content,
           true,
           addExtraLine,
@@ -1269,7 +1270,7 @@ export function addRestrictedCommands(
         const addExtraLine =
           (settings?.get('addExtraLineOnCellMerge').composite as boolean) ??
           true;
-        return NotebookActions.mergeCells(
+        return RestrictedNotebookActions.mergeCells(
           current.content,
           false,
           addExtraLine,
@@ -1563,7 +1564,7 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        NotebookActions.moveUp(current.content);
+        RestrictedNotebookActions.moveUp(current.content);
         Private.raiseSilentNotification(
           trans.__('Notebook cell shifted up successfully'),
           current.node
@@ -1618,7 +1619,7 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        NotebookActions.moveDown(current.content);
+        RestrictedNotebookActions.moveDown(current.content);
         Private.raiseSilentNotification(
           trans.__('Notebook cell shifted down successfully'),
           current.node

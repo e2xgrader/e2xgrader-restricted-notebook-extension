@@ -4,10 +4,12 @@ import {
   NotebookPanel
 } from '@jupyterlab/notebook';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
+import {JSONObject, MimeData, ReadonlyPartialJSONObject} from '@lumino/coreutils';
 import { CellBarExtension } from '@jupyterlab/cell-toolbar';
-import { SemanticCommand } from '@jupyterlab/apputils';
-import type { CodeCell } from '@jupyterlab/cells';
+import {SemanticCommand} from '@jupyterlab/apputils';
+import type {CodeCell, ICellModel} from '@jupyterlab/cells';
+import * as nbformat from '@jupyterlab/nbformat';
+const NBGRADER_METADATA_KEY: string = 'nbgrader';
 
 /**
  * Get the current widget and activate unless the args specify otherwise.
@@ -58,6 +60,58 @@ export function isOutputScrollingEnabled(notebook: Notebook): boolean {
   }
 
   return hasCodeCell;
+}
+
+
+export function sanitizeClipboard(clipboard: MimeData) {
+  const JUPYTER_CELL_MIME = 'application/vnd.jupyter.cells';
+  if (!clipboard.hasData(JUPYTER_CELL_MIME)) {
+    return;
+  }
+  clipboard.setData(JUPYTER_CELL_MIME, sanitizeCells(clipboard.getData(JUPYTER_CELL_MIME) as nbformat.IBaseCell[]));
+}
+
+export function sanitizeCells(cells: nbformat.ICell[], onLockedCellDetected?: () => any): nbformat.ICell[] {
+  let lockedCellFound: boolean = false;
+  if (cells.length === 0) {
+    return [];
+  }
+  const sanitizedCells: nbformat.IBaseCell[] = [];
+  cells.forEach((cell: nbformat.IBaseCell) => {
+    if (isE2xCellLocked(cell)) {
+      lockedCellFound = true;
+    } else {
+      sanitizedCells.push(cell);
+    }
+  });
+  if(lockedCellFound && onLockedCellDetected) {
+    onLockedCellDetected();
+  }
+  return sanitizedCells;
+}
+
+export function isE2xCellLocked(cell: nbformat.ICell | ICellModel): boolean {
+  console.log(cell.metadata);
+  return (cell.metadata[NBGRADER_METADATA_KEY] as {locked?: boolean})?.locked === true;
+}
+
+/**
+ * Get the selected cell(s) without affecting the clipboard.
+ *
+ * @param notebook - The target notebook widget.
+ *
+ * @returns A list of 0 or more selected cells
+ */
+export function selectedCells(notebook: Notebook): nbformat.ICell[] {
+  return notebook.widgets
+    .filter(cell => notebook.isSelectedOrActive(cell))
+    .map(cell => cell.model.toJSON())
+    .map(cellJSON => {
+      if ((cellJSON.metadata as JSONObject).deletable !== undefined) {
+        delete (cellJSON.metadata as JSONObject).deletable;
+      }
+      return cellJSON;
+    });
 }
 
 export namespace PrivateUtils {

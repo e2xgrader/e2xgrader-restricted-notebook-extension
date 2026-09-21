@@ -70,7 +70,8 @@
         "@jupyterlab/translation": "^4.0.0",
         "@jupyterlab/ui-components": "^4.0.0",
         "@lumino/coreutils": "^2.2.3",
-        "@lumino/disposable": "^2.1.6"
+        "@lumino/disposable": "^2.1.6",
+        "@jupyter/ydoc": "^4.0.0"
     },
     "devDependencies": {
         "@eslint/js": "^9.0.0",
