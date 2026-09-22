@@ -18,7 +18,7 @@ import { ITranslator } from '@jupyterlab/translation';
 import type { Cell, ICellModel } from '@jupyterlab/cells';
 import { MarkdownCell } from '@jupyterlab/cells';
 import { CommandIDs } from './CommandIDs';
-import { getCurrent, isOutputScrollingEnabled, PrivateUtils } from './util';
+import { getCurrent, isOutputScrollingEnabled, PrivateUtils } from '../util';
 import type { IObservableList } from '@jupyterlab/observables';
 import {
   addAboveIcon,
@@ -36,6 +36,7 @@ import {
 } from '@jupyterlab/ui-components';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import {RestrictedNotebookActions} from "./restrictedActions";
+import {ErrorNotifications} from "./ErrorNotifications";
 
 /**
  * Add the notebook commands to the application's command registry.
@@ -46,6 +47,7 @@ export function addRestrictedCommands(
   translator: ITranslator,
   sessionDialogs: ISessionContextDialogs,
   settings: ISettingRegistry.ISettings | null,
+  restrictedSettings: ISettingRegistry.ISettings | null,
   isEnabled: () => boolean
 ): void {
   const trans = translator.load('jupyterlab');
@@ -1293,7 +1295,11 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        return NotebookActions.insertAbove(current.content);
+        if(restrictedSettings?.get('canAddCellsToNotebooks').composite as boolean) {
+          return NotebookActions.insertAbove(current.content);
+        } else {
+          ErrorNotifications.notifyE2xInsertCell(translator);
+        }
       }
     },
     icon: args => (args.toolbar ? addAboveIcon : undefined),
@@ -1318,7 +1324,11 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        return NotebookActions.insertBelow(current.content);
+        if(restrictedSettings?.get('canAddCellsToNotebooks').composite as boolean) {
+          return NotebookActions.insertBelow(current.content);
+        } else {
+          ErrorNotifications.notifyE2xInsertCell(translator);
+        }
       }
     },
     icon: args => (args.toolbar ? addBelowIcon : undefined),

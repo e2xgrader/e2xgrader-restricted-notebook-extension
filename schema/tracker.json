@@ -1,0 +1,21 @@
+{
+  "jupyter.lab.shortcuts": [],
+  "title": "@e2xgrader/restricted-notebook-extension:tracker",
+  "description": "@e2xgrader/restricted-notebook-extension:tracker settings.",
+  "type": "object",
+  "properties": {
+    "canCreateNotebooks": {
+      "title": "Can create new notebooks",
+      "description": "If users should be able to create new notebooks",
+      "type": "boolean",
+      "default": false
+    },
+    "canAddCellsToNotebooks": {
+      "title": "Can add cells",
+      "description": "If users should be able to add cells to notebooks",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

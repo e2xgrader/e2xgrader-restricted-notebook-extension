@@ -1,8 +1,0 @@
-{
-  "jupyter.lab.shortcuts": [],
-  "title": "@e2xgrader/restricted-notebook-extension",
-  "description": "@e2xgrader/restricted-notebook-extension settings.",
-  "type": "object",
-  "properties": {},
-  "additionalProperties": false
-}

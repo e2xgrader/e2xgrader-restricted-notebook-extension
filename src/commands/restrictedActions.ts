@@ -1,12 +1,13 @@
 import {Notebook, NotebookActions} from "@jupyterlab/notebook";
-import {Clipboard, Dialog, showDialog, SystemClipboard, Notification} from "@jupyterlab/apputils";
+import {Clipboard, Dialog, showDialog, SystemClipboard } from "@jupyterlab/apputils";
 import {JSONExt, JSONObject} from "@lumino/coreutils";
 import {Cell, CodeCell, CodeCellModel, isMarkdownCellModel, isRawCellModel, MarkdownCell } from "@jupyterlab/cells";
 import { ITranslator, nullTranslator } from "@jupyterlab/translation";
 import { ISharedAttachmentsCell, YNotebook } from '@jupyter/ydoc';
 import type { Kernel, KernelMessage } from '@jupyterlab/services';
 import * as nbformat from '@jupyterlab/nbformat';
-import {isE2xCell, sanitizeCells} from "./util";
+import {isE2xCell, sanitizeCells} from "../util";
+import { ErrorNotifications } from "./ErrorNotifications";
 
 /**
  * The mimetype used for Jupyter cell data.
@@ -17,91 +18,6 @@ const JUPYTER_CELL_MIME = 'application/vnd.jupyter.cells';
  * A namespace for `NotebookActions` static methods.
  */
 export namespace RestrictedNotebookActions {
-  const READ_ONLY_ACTION_AUTO_CLOSE = 5000;
-  const E2X_ACTION_AUTO_CLOSE = 5000;
-
-  function notifySplitReadOnlyAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('jupyterlab');
-    Notification.error(trans.__('The cell is read-only and cannot be split.'), {
-      autoClose: READ_ONLY_ACTION_AUTO_CLOSE
-    });
-  }
-
-  function notifySplitE2xAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('E2xgrader-cells cannot be split.'), {
-      autoClose: E2X_ACTION_AUTO_CLOSE
-    });
-  }
-
-  function notifyMergeReadOnlyAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('jupyterlab');
-    Notification.error(
-      trans.__('The cell is read-only and cannot be merged.'),
-      {
-        autoClose: READ_ONLY_ACTION_AUTO_CLOSE
-      }
-    );
-  }
-
-  function notifyMergeE2xAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(
-      trans.__('E2xgrader-cells cannot be merged.'),
-      {
-        autoClose: E2X_ACTION_AUTO_CLOSE
-      }
-    );
-  }
-
-  function notifyCopyE2xAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('E2xgrader-cells cannot be copied! Some cells have not been copied.'), {
-      autoClose: E2X_ACTION_AUTO_CLOSE
-    });
-  }
-
-  function notifyCutE2xAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('E2xgrader-cells cannot be cut! Some cells have not been cut.'), {
-      autoClose: E2X_ACTION_AUTO_CLOSE
-    });
-  }
-
-  function notifySwitchCellTypeE2xAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('The type of e2xgrader-cells cannot be changed!'), {
-      autoClose: E2X_ACTION_AUTO_CLOSE
-    });
-  }
-
-  function notifyDeleteE2xAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('E2xgrader-cells cannot be deleted! Some cells have not been deleted.'), {
-      autoClose: E2X_ACTION_AUTO_CLOSE
-    });
-  }
-
-  function notifyMoveE2xAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('The selection contains e2xgrader-cells and can therefore not be moved!'), {
-      autoClose: E2X_ACTION_AUTO_CLOSE
-    });
-  }
-
-  function notifyPasteE2xAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('E2xgrader-cells cannot be pasted. Some cells have not been pasted!'), {
-      autoClose: E2X_ACTION_AUTO_CLOSE
-    });
-  }
-
-  function notifyDuplicateE2xAction(translator?: ITranslator): void {
-    const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('E2xgrader-cells cannot be duplicated. Some cells have not been duplicated!'), {
-      autoClose: E2X_ACTION_AUTO_CLOSE
-    });
-  }
 
   /**
    * Split the active cell into two or more cells.
@@ -132,11 +48,11 @@ export namespace RestrictedNotebookActions {
       return;
     }
     if (isE2xCell(notebook.activeCell.model)) {
-      notifySplitE2xAction(translator);
+      ErrorNotifications.notifySplitE2xAction(translator);
       return;
     }
     if (notebook.activeCell.model.getMetadata('editable') === false) {
-      notifySplitReadOnlyAction(translator);
+      ErrorNotifications.notifySplitReadOnlyAction(translator);
       return;
     }
 
@@ -333,12 +249,12 @@ export namespace RestrictedNotebookActions {
     });
 
     if (hasE2xCell) {
-      notifyMergeE2xAction(translator);
+      ErrorNotifications.notifyMergeE2xAction(translator);
       return;
     }
 
     if (hasReadOnlyCell) {
-      notifyMergeReadOnlyAction(translator);
+      ErrorNotifications.notifyMergeReadOnlyAction(translator);
       return;
     }
 
@@ -353,7 +269,7 @@ export namespace RestrictedNotebookActions {
         if (
           notebook.widgets[active - 1].model.getMetadata('editable') === false
         ) {
-          notifyMergeReadOnlyAction(translator);
+          ErrorNotifications.notifyMergeReadOnlyAction(translator);
           return;
         }
         // Otherwise merge with the previous cell.
@@ -369,7 +285,7 @@ export namespace RestrictedNotebookActions {
         if (
           notebook.widgets[active + 1].model.getMetadata('editable') === false
         ) {
-          notifyMergeReadOnlyAction(translator);
+          ErrorNotifications.notifyMergeReadOnlyAction(translator);
           return;
         }
         // Otherwise merge with the next cell.
@@ -459,7 +375,7 @@ export namespace RestrictedNotebookActions {
 
     const state = Private.getState(notebook);
 
-    Private.deleteCells(notebook, () => notifyDeleteE2xAction(notebook.translator));
+    Private.deleteCells(notebook, () => ErrorNotifications.notifyDeleteE2xAction(notebook.translator));
     void Private.handleState(notebook, state, true);
   }
 
@@ -469,7 +385,7 @@ export namespace RestrictedNotebookActions {
     }
 
     const selectedCells: nbformat.ICell[] = Private.selectedCells(notebook);
-    if(sanitizeCells(selectedCells, () => notifyMoveE2xAction(notebook.translator)).length <  selectedCells.length){
+    if(sanitizeCells(selectedCells, () => ErrorNotifications.notifyMoveE2xAction(notebook.translator)).length <  selectedCells.length){
       return;
     }
 
@@ -536,7 +452,7 @@ export namespace RestrictedNotebookActions {
 
     const state = Private.getState(notebook);
 
-    Private.changeCellType(notebook, value, { translator, onE2xCellDetected: () => notifySwitchCellTypeE2xAction(notebook.translator) });
+    Private.changeCellType(notebook, value, { translator, onE2xCellDetected: () => ErrorNotifications.notifySwitchCellTypeE2xAction(notebook.translator) });
     void Private.handleState(notebook, state);
   }
 
@@ -546,7 +462,7 @@ export namespace RestrictedNotebookActions {
    * @param notebook - The target notebook widget.
    */
   export function copy(notebook: Notebook): void {
-    Private.copyOrCut(notebook, false, () => notifyCopyE2xAction(notebook.translator));
+    Private.copyOrCut(notebook, false, () => ErrorNotifications.notifyCopyE2xAction(notebook.translator));
   }
 
   /**
@@ -557,7 +473,7 @@ export namespace RestrictedNotebookActions {
   export async function copyToSystemClipboard(
     notebook: Notebook
   ): Promise<void> {
-    await Private.copyOrCutToSystemClipboard(notebook, false, () => notifyCopyE2xAction(notebook.translator));
+    await Private.copyOrCutToSystemClipboard(notebook, false, () => ErrorNotifications.notifyCopyE2xAction(notebook.translator));
   }
 
   /**
@@ -570,7 +486,7 @@ export namespace RestrictedNotebookActions {
    * A new code cell is added if all cells are cut.
    */
   export function cut(notebook: Notebook): void {
-    Private.copyOrCut(notebook, true, () => notifyCutE2xAction(notebook.translator));
+    Private.copyOrCut(notebook, true, () => ErrorNotifications.notifyCutE2xAction(notebook.translator));
   }
 
   /**
@@ -585,7 +501,7 @@ export namespace RestrictedNotebookActions {
   export async function cutToSystemClipboard(
     notebook: Notebook
   ): Promise<void> {
-    await Private.copyOrCutToSystemClipboard(notebook, true, () => notifyCutE2xAction(notebook.translator));
+    await Private.copyOrCutToSystemClipboard(notebook, true, () => ErrorNotifications.notifyCutE2xAction(notebook.translator));
   }
 
 
@@ -618,7 +534,7 @@ export namespace RestrictedNotebookActions {
       return;
     }
 
-    let values = sanitizeCells(clipboard.getData(JUPYTER_CELL_MIME) as nbformat.IBaseCell[], () => notifyPasteE2xAction(notebook.translator));
+    let values = sanitizeCells(clipboard.getData(JUPYTER_CELL_MIME) as nbformat.IBaseCell[], () => ErrorNotifications.notifyPasteE2xAction(notebook.translator));
     if (options?.stripOutputs) {
       values = Private.stripCodeCellOutputs(values);
     }
@@ -657,7 +573,7 @@ export namespace RestrictedNotebookActions {
       return;
     }
 
-    let values = sanitizeCells(stored as nbformat.IBaseCell[], () => notifyPasteE2xAction(notebook.translator));
+    let values = sanitizeCells(stored as nbformat.IBaseCell[], () => ErrorNotifications.notifyPasteE2xAction(notebook.translator));
     if (options?.stripOutputs) {
       values = Private.stripCodeCellOutputs(values);
     }
@@ -686,7 +602,7 @@ export namespace RestrictedNotebookActions {
     notebook: Notebook,
     mode: 'below' | 'belowSelected' | 'above' | 'replace' = 'below'
   ): void {
-    const values = sanitizeCells(Private.selectedCells(notebook), () => notifyDuplicateE2xAction(notebook.translator));
+    const values = sanitizeCells(Private.selectedCells(notebook), () => ErrorNotifications.notifyDuplicateE2xAction(notebook.translator));
 
     if (!values || values.length === 0) {
       return;

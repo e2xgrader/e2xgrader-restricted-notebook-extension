@@ -41,9 +41,9 @@ import {
   addRestrictedCommands,
   populateMenus,
   populatePalette
-} from './restrictedCommands';
-import { CommandIDs } from './CommandIDs';
-import { PrivateUtils } from './util';
+} from '../commands/restrictedCommands';
+import { CommandIDs } from '../commands/CommandIDs';
+import { PrivateUtils } from '../util';
 import { IDocumentWidget } from '@jupyterlab/docregistry';
 import { DisposableSet } from '@lumino/disposable';
 
@@ -59,6 +59,8 @@ const SIDE_BY_SIDE_STYLE_ID = 'jp-NotebookExtension-sideBySideMargins';
 
 export const E2X_RESTRICTED_NOTEBOOK_TRACKER_PLUGIN_ID = '@e2xgrader/restricted-notebook-extension:notebook-tracker';
 const SETTINGS_ID = '@jupyterlab/notebook-extension:tracker';
+
+const RESTRICTED_SETTINGS_ID = '@e2xgrader/restricted-notebook-extension:tracker';
 
 export function activateNotebookHandler(
   app: JupyterFrontEnd,
@@ -110,6 +112,13 @@ export function activateNotebookHandler(
       `${sideBySideOutputRatio}fr`
     );
 
+  // Fetch restricted settings if possible.
+  const fetchRestrictedSettings = settingRegistry
+      ? settingRegistry.load(RESTRICTED_SETTINGS_ID)
+      : Promise.reject(
+        new Error(`No setting registry for ${RESTRICTED_SETTINGS_ID}`)
+      );
+
   // Fetch settings if possible.
   const fetchSettings = settingRegistry
     ? settingRegistry.load(SETTINGS_ID)
@@ -117,8 +126,8 @@ export function activateNotebookHandler(
         new Error(`No setting registry for ${SETTINGS_ID}`)
       );
 
-  fetchSettings
-    .then(settings => {
+  Promise.all([fetchRestrictedSettings, fetchSettings])
+    .then(([restrictedSettings, settings]) => {
       updateConfig(settings);
 
       settings.changed.connect(() => {
@@ -247,6 +256,7 @@ export function activateNotebookHandler(
         translator,
         sessionDialogs,
         settings,
+        restrictedSettings,
         isEnabled
       );
     })
@@ -264,9 +274,10 @@ export function activateNotebookHandler(
         translator,
         sessionDialogs,
         null,
+        null,
         isEnabled
       );
-    });
+    })
 
   if (formRegistry) {
     const CMRenderer = formRegistry.getRenderer(
