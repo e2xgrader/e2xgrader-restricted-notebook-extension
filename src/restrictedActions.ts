@@ -6,7 +6,7 @@ import { ITranslator, nullTranslator } from "@jupyterlab/translation";
 import { ISharedAttachmentsCell, YNotebook } from '@jupyter/ydoc';
 import type { Kernel, KernelMessage } from '@jupyterlab/services';
 import * as nbformat from '@jupyterlab/nbformat';
-import {isE2xCellLocked, sanitizeCells} from "./util";
+import {isE2xCell, sanitizeCells} from "./util";
 
 /**
  * The mimetype used for Jupyter cell data.
@@ -18,7 +18,7 @@ const JUPYTER_CELL_MIME = 'application/vnd.jupyter.cells';
  */
 export namespace RestrictedNotebookActions {
   const READ_ONLY_ACTION_AUTO_CLOSE = 5000;
-  const E2X_LOCKED_ACTION_AUTO_CLOSE = 5000;
+  const E2X_ACTION_AUTO_CLOSE = 5000;
 
   function notifySplitReadOnlyAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('jupyterlab');
@@ -27,10 +27,10 @@ export namespace RestrictedNotebookActions {
     });
   }
 
-  function notifySplitLockedE2xAction(translator?: ITranslator): void {
+  function notifySplitE2xAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('Locked e2xgrader-cells cannot be split.'), {
-      autoClose: E2X_LOCKED_ACTION_AUTO_CLOSE
+    Notification.error(trans.__('E2xgrader-cells cannot be split.'), {
+      autoClose: E2X_ACTION_AUTO_CLOSE
     });
   }
 
@@ -44,62 +44,62 @@ export namespace RestrictedNotebookActions {
     );
   }
 
-  function notifyMergeLockedE2xAction(translator?: ITranslator): void {
+  function notifyMergeE2xAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
     Notification.error(
-      trans.__('Locked e2xgrader-cells cannot be merged.'),
+      trans.__('E2xgrader-cells cannot be merged.'),
       {
-        autoClose: E2X_LOCKED_ACTION_AUTO_CLOSE
+        autoClose: E2X_ACTION_AUTO_CLOSE
       }
     );
   }
 
-  function notifyCopyLockedE2xAction(translator?: ITranslator): void {
+  function notifyCopyE2xAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('Locked e2xgrader-cells cannot be copied! Some cells have not been copied.'), {
-      autoClose: E2X_LOCKED_ACTION_AUTO_CLOSE
+    Notification.error(trans.__('E2xgrader-cells cannot be copied! Some cells have not been copied.'), {
+      autoClose: E2X_ACTION_AUTO_CLOSE
     });
   }
 
-  function notifyCutLockedE2xAction(translator?: ITranslator): void {
+  function notifyCutE2xAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('Locked e2xgrader-cells cannot be cut! Some cells have not been cut.'), {
-      autoClose: E2X_LOCKED_ACTION_AUTO_CLOSE
+    Notification.error(trans.__('E2xgrader-cells cannot be cut! Some cells have not been cut.'), {
+      autoClose: E2X_ACTION_AUTO_CLOSE
     });
   }
 
-  function notifySwitchCellTypeLockedE2xAction(translator?: ITranslator): void {
+  function notifySwitchCellTypeE2xAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('The type of locked e2xgrader-cells cannot be changed!'), {
-      autoClose: E2X_LOCKED_ACTION_AUTO_CLOSE
+    Notification.error(trans.__('The type of e2xgrader-cells cannot be changed!'), {
+      autoClose: E2X_ACTION_AUTO_CLOSE
     });
   }
 
-  function notifyDeleteLockedE2xAction(translator?: ITranslator): void {
+  function notifyDeleteE2xAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('Locked e2xgrader-cells cannot be deleted! Some cells have not been deleted.'), {
-      autoClose: E2X_LOCKED_ACTION_AUTO_CLOSE
+    Notification.error(trans.__('E2xgrader-cells cannot be deleted! Some cells have not been deleted.'), {
+      autoClose: E2X_ACTION_AUTO_CLOSE
     });
   }
 
-  function notifyMoveLockedE2xAction(translator?: ITranslator): void {
+  function notifyMoveE2xAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('The selection contains locked e2xgrader-cells and can therefore not be moved!'), {
-      autoClose: E2X_LOCKED_ACTION_AUTO_CLOSE
+    Notification.error(trans.__('The selection contains e2xgrader-cells and can therefore not be moved!'), {
+      autoClose: E2X_ACTION_AUTO_CLOSE
     });
   }
 
-  function notifyPasteLockedE2xAction(translator?: ITranslator): void {
+  function notifyPasteE2xAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('Locked e2xgrader-cells cannot be pasted. Some cells have not been pasted!'), {
-      autoClose: E2X_LOCKED_ACTION_AUTO_CLOSE
+    Notification.error(trans.__('E2xgrader-cells cannot be pasted. Some cells have not been pasted!'), {
+      autoClose: E2X_ACTION_AUTO_CLOSE
     });
   }
 
-  function notifyDuplicateLockedE2xAction(translator?: ITranslator): void {
+  function notifyDuplicateE2xAction(translator?: ITranslator): void {
     const trans = (translator ?? nullTranslator).load('e2xgrader_restricted_notebook_extension');
-    Notification.error(trans.__('Locked e2xgrader-cells cannot be duplicated. Some cells have not been duplicated!'), {
-      autoClose: E2X_LOCKED_ACTION_AUTO_CLOSE
+    Notification.error(trans.__('E2xgrader-cells cannot be duplicated. Some cells have not been duplicated!'), {
+      autoClose: E2X_ACTION_AUTO_CLOSE
     });
   }
 
@@ -131,8 +131,8 @@ export namespace RestrictedNotebookActions {
     if (!notebook.model || !notebook.activeCell) {
       return;
     }
-    if (isE2xCellLocked(notebook.activeCell.model)) {
-      notifySplitLockedE2xAction(translator);
+    if (isE2xCell(notebook.activeCell.model)) {
+      notifySplitE2xAction(translator);
       return;
     }
     if (notebook.activeCell.model.getMetadata('editable') === false) {
@@ -304,14 +304,14 @@ export namespace RestrictedNotebookActions {
     const primary = notebook.activeCell;
     const active = notebook.activeCellIndex;
     const attachments: nbformat.IAttachments = {};
-    let hasLockedE2xCell = false;
+    let hasE2xCell = false;
     let hasReadOnlyCell = false;
 
     // Get the cells to merge.
     notebook.widgets.forEach((child, index) => {
       if (notebook.isSelectedOrActive(child)) {
-        if(isE2xCellLocked(child.model)){
-          hasLockedE2xCell = true;
+        if(isE2xCell(child.model)){
+          hasE2xCell = true;
           return;
         }
         if (child.model.getMetadata('editable') === false) {
@@ -332,8 +332,8 @@ export namespace RestrictedNotebookActions {
       }
     });
 
-    if (hasLockedE2xCell) {
-      notifyMergeLockedE2xAction(translator);
+    if (hasE2xCell) {
+      notifyMergeE2xAction(translator);
       return;
     }
 
@@ -459,7 +459,7 @@ export namespace RestrictedNotebookActions {
 
     const state = Private.getState(notebook);
 
-    Private.deleteCells(notebook, () => notifyDeleteLockedE2xAction(notebook.translator));
+    Private.deleteCells(notebook, () => notifyDeleteE2xAction(notebook.translator));
     void Private.handleState(notebook, state, true);
   }
 
@@ -469,7 +469,7 @@ export namespace RestrictedNotebookActions {
     }
 
     const selectedCells: nbformat.ICell[] = Private.selectedCells(notebook);
-    if(sanitizeCells(selectedCells, () => notifyMoveLockedE2xAction(notebook.translator)).length <  selectedCells.length){
+    if(sanitizeCells(selectedCells, () => notifyMoveE2xAction(notebook.translator)).length <  selectedCells.length){
       return;
     }
 
@@ -536,7 +536,7 @@ export namespace RestrictedNotebookActions {
 
     const state = Private.getState(notebook);
 
-    Private.changeCellType(notebook, value, { translator, onLockedCellDetected: () => notifySwitchCellTypeLockedE2xAction(notebook.translator) });
+    Private.changeCellType(notebook, value, { translator, onE2xCellDetected: () => notifySwitchCellTypeE2xAction(notebook.translator) });
     void Private.handleState(notebook, state);
   }
 
@@ -546,7 +546,7 @@ export namespace RestrictedNotebookActions {
    * @param notebook - The target notebook widget.
    */
   export function copy(notebook: Notebook): void {
-    Private.copyOrCut(notebook, false, () => notifyCopyLockedE2xAction(notebook.translator));
+    Private.copyOrCut(notebook, false, () => notifyCopyE2xAction(notebook.translator));
   }
 
   /**
@@ -557,7 +557,7 @@ export namespace RestrictedNotebookActions {
   export async function copyToSystemClipboard(
     notebook: Notebook
   ): Promise<void> {
-    await Private.copyOrCutToSystemClipboard(notebook, false, () => notifyCopyLockedE2xAction(notebook.translator));
+    await Private.copyOrCutToSystemClipboard(notebook, false, () => notifyCopyE2xAction(notebook.translator));
   }
 
   /**
@@ -570,7 +570,7 @@ export namespace RestrictedNotebookActions {
    * A new code cell is added if all cells are cut.
    */
   export function cut(notebook: Notebook): void {
-    Private.copyOrCut(notebook, true, () => notifyCutLockedE2xAction(notebook.translator));
+    Private.copyOrCut(notebook, true, () => notifyCutE2xAction(notebook.translator));
   }
 
   /**
@@ -585,7 +585,7 @@ export namespace RestrictedNotebookActions {
   export async function cutToSystemClipboard(
     notebook: Notebook
   ): Promise<void> {
-    await Private.copyOrCutToSystemClipboard(notebook, true, () => notifyCutLockedE2xAction(notebook.translator));
+    await Private.copyOrCutToSystemClipboard(notebook, true, () => notifyCutE2xAction(notebook.translator));
   }
 
 
@@ -618,7 +618,7 @@ export namespace RestrictedNotebookActions {
       return;
     }
 
-    let values = sanitizeCells(clipboard.getData(JUPYTER_CELL_MIME) as nbformat.IBaseCell[], () => notifyPasteLockedE2xAction(notebook.translator));
+    let values = sanitizeCells(clipboard.getData(JUPYTER_CELL_MIME) as nbformat.IBaseCell[], () => notifyPasteE2xAction(notebook.translator));
     if (options?.stripOutputs) {
       values = Private.stripCodeCellOutputs(values);
     }
@@ -657,7 +657,7 @@ export namespace RestrictedNotebookActions {
       return;
     }
 
-    let values = sanitizeCells(stored as nbformat.IBaseCell[], () => notifyPasteLockedE2xAction(notebook.translator));
+    let values = sanitizeCells(stored as nbformat.IBaseCell[], () => notifyPasteE2xAction(notebook.translator));
     if (options?.stripOutputs) {
       values = Private.stripCodeCellOutputs(values);
     }
@@ -686,7 +686,7 @@ export namespace RestrictedNotebookActions {
     notebook: Notebook,
     mode: 'below' | 'belowSelected' | 'above' | 'replace' = 'below'
   ): void {
-    const values = sanitizeCells(Private.selectedCells(notebook), () => notifyDuplicateLockedE2xAction(notebook.translator));
+    const values = sanitizeCells(Private.selectedCells(notebook), () => notifyDuplicateE2xAction(notebook.translator));
 
     if (!values || values.length === 0) {
       return;
@@ -986,9 +986,9 @@ namespace Private {
    *
    * @param cut - True if the cells should be cut, false if they should be copied.
    *
-   * @param onLockedCellDetected - Callback that is called when sanitization has detected a locked e2xgrader cell
+   * @param onE2xCellDetected - Callback that is called when sanitization has detected an e2xgrader cell
    */
-  export function copyOrCut(notebook: Notebook, cut: boolean, onLockedCellDetected?: () => any): void {
+  export function copyOrCut(notebook: Notebook, cut: boolean, onE2xCellDetected?: () => any): void {
     if (!notebook.model || !notebook.activeCell) {
       return;
     }
@@ -999,7 +999,7 @@ namespace Private {
     notebook.mode = 'command';
     clipboard.clear();
 
-    const data = sanitizeCells(Private.selectedCells(notebook), () => onLockedCellDetected?.());
+    const data = sanitizeCells(Private.selectedCells(notebook), () => onE2xCellDetected?.());
 
     clipboard.setData(JUPYTER_CELL_MIME, data);
     if (cut) {
@@ -1022,12 +1022,12 @@ namespace Private {
    *
    * @param cut - True if the cells should be cut, false if they should be copied.
    *
-   * @param onLockedCellDetected - Callback that is called when sanitization has detected a locked e2xgrader cell
+   * @param onE2xCellDetected - Callback that is called when sanitization has detected an e2xgrader cell
    */
   export async function copyOrCutToSystemClipboard(
     notebook: Notebook,
     cut: boolean,
-    onLockedCellDetected?: () => any
+    onE2xCellDetected?: () => any
   ): Promise<void> {
     if (!notebook.model || !notebook.activeCell) {
       return;
@@ -1039,7 +1039,7 @@ namespace Private {
     notebook.mode = 'command';
     clipboard.clear();
 
-    const data = sanitizeCells(Private.selectedCells(notebook), () => onLockedCellDetected?.());
+    const data = sanitizeCells(Private.selectedCells(notebook), () => onE2xCellDetected?.());
 
     await clipboard.setData(JUPYTER_CELL_MIME, data);
     if (cut) {
@@ -1074,7 +1074,7 @@ namespace Private {
     options?: {
       translator?: ITranslator;
       headingLevel?: number;
-      onLockedCellDetected?: () => any
+      onE2xCellDetected?: () => any
     }
   ): void {
     const { translator, headingLevel } = options ?? {};
@@ -1084,8 +1084,8 @@ namespace Private {
         return;
       }
 
-      if(isE2xCellLocked(child.model)){
-        if(options?.onLockedCellDetected) options.onLockedCellDetected();
+      if(isE2xCell(child.model)){
+        if(options?.onE2xCellDetected) options.onE2xCellDetected();
         return;
       }
 
@@ -1178,7 +1178,7 @@ namespace Private {
    *
    * @param notebook - The target notebook widget.
    *
-   * @param onLockedCellDetected - Callback that is called when sanitization has detected a locked e2xgrader cell
+   * @param onE2xCellDetected - Callback that is called when sanitization has detected an e2xgrader cell
    *
    * #### Notes
    * The cell after the last selected cell will be activated.
@@ -1186,12 +1186,12 @@ namespace Private {
    * It will add a code cell if all cells are deleted.
    * This action can be undone.
    */
-  export function deleteCells(notebook: Notebook, onLockedCellDetected?: () => any): void {
+  export function deleteCells(notebook: Notebook, onE2xCellDetected?: () => any): void {
     const model = notebook.model!;
     const sharedModel = model.sharedModel;
     const toDelete: number[] = [];
     const cellsToDeleteSet = new Set<number>();
-    let e2xLockedCellDetected: boolean = false;
+    let e2xCellDetected: boolean = false;
 
     notebook.mode = 'command';
 
@@ -1200,8 +1200,8 @@ namespace Private {
       const deletable = child.model.getMetadata('deletable') !== false;
 
       if (notebook.isSelectedOrActive(child) && deletable) {
-        if(isE2xCellLocked(child.model)) {
-          e2xLockedCellDetected = true;
+        if(isE2xCell(child.model)) {
+          e2xCellDetected = true;
           return;
         }
         cellsToDeleteSet.add(index);
@@ -1282,7 +1282,7 @@ namespace Private {
       notebook.activeCellIndex = toDelete[0] - toDelete.length + 1;
     }
 
-    if(e2xLockedCellDetected && onLockedCellDetected) onLockedCellDetected();
+    if(e2xCellDetected && onE2xCellDetected) onE2xCellDetected();
 
     // Deselect any remaining, undeletable cells. Do this even if we don't
     // delete anything so that users are aware *something* happened.

@@ -4,7 +4,7 @@ import {
   NotebookPanel
 } from '@jupyterlab/notebook';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import {JSONObject, MimeData, ReadonlyPartialJSONObject} from '@lumino/coreutils';
+import {JSONObject, ReadonlyPartialJSONObject} from '@lumino/coreutils';
 import { CellBarExtension } from '@jupyterlab/cell-toolbar';
 import {SemanticCommand} from '@jupyterlab/apputils';
 import type {CodeCell, ICellModel} from '@jupyterlab/cells';
@@ -62,37 +62,38 @@ export function isOutputScrollingEnabled(notebook: Notebook): boolean {
   return hasCodeCell;
 }
 
-
-export function sanitizeClipboard(clipboard: MimeData) {
-  const JUPYTER_CELL_MIME = 'application/vnd.jupyter.cells';
-  if (!clipboard.hasData(JUPYTER_CELL_MIME)) {
-    return;
-  }
-  clipboard.setData(JUPYTER_CELL_MIME, sanitizeCells(clipboard.getData(JUPYTER_CELL_MIME) as nbformat.IBaseCell[]));
-}
-
-export function sanitizeCells(cells: nbformat.ICell[], onLockedCellDetected?: () => any): nbformat.ICell[] {
-  let lockedCellFound: boolean = false;
+/**
+ * Filters an array of cells to remove e2xgrader cells
+ * @param cells - The array that will be filtered
+ * @param onE2xCellDetected - A callback function, that is called, when an e2xgrader cell has been found
+ *
+ * @return sanitizedCells - The filtered array
+ */
+export function sanitizeCells(cells: nbformat.ICell[], onE2xCellDetected?: () => any): nbformat.ICell[] {
+  let e2xCellDetected: boolean = false;
   if (cells.length === 0) {
     return [];
   }
   const sanitizedCells: nbformat.IBaseCell[] = [];
   cells.forEach((cell: nbformat.IBaseCell) => {
-    if (isE2xCellLocked(cell)) {
-      lockedCellFound = true;
+    if (isE2xCell(cell)) {
+      e2xCellDetected = true;
     } else {
       sanitizedCells.push(cell);
     }
   });
-  if(lockedCellFound && onLockedCellDetected) {
-    onLockedCellDetected();
+  if(e2xCellDetected && onE2xCellDetected) {
+    onE2xCellDetected();
   }
   return sanitizedCells;
 }
 
-export function isE2xCellLocked(cell: nbformat.ICell | ICellModel): boolean {
-  console.log(cell.metadata);
-  return (cell.metadata[NBGRADER_METADATA_KEY] as {locked?: boolean})?.locked === true;
+/**
+ * checks if a cell has nbgrader metadata -> assumed to be an e2x cell
+ * @param cell - The cell under review
+ */
+export function isE2xCell(cell: nbformat.ICell | ICellModel): boolean {
+  return cell.metadata[NBGRADER_METADATA_KEY] !== undefined;
 }
 
 /**
