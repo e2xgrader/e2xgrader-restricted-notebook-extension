@@ -4,10 +4,10 @@ import {
   NotebookPanel
 } from '@jupyterlab/notebook';
 import { JupyterFrontEnd } from '@jupyterlab/application';
-import {JSONObject, ReadonlyPartialJSONObject} from '@lumino/coreutils';
+import { JSONObject, ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { CellBarExtension } from '@jupyterlab/cell-toolbar';
-import {SemanticCommand} from '@jupyterlab/apputils';
-import type {CodeCell, ICellModel} from '@jupyterlab/cells';
+import { SemanticCommand } from '@jupyterlab/apputils';
+import type { CodeCell, ICellModel } from '@jupyterlab/cells';
 import * as nbformat from '@jupyterlab/nbformat';
 const NBGRADER_METADATA_KEY: string = 'nbgrader';
 
@@ -69,7 +69,10 @@ export function isOutputScrollingEnabled(notebook: Notebook): boolean {
  *
  * @return sanitizedCells - The filtered array
  */
-export function sanitizeCells(cells: nbformat.ICell[], onE2xCellDetected?: () => any): nbformat.ICell[] {
+export function sanitizeCells(
+  cells: nbformat.ICell[],
+  onE2xCellDetected?: () => any
+): nbformat.ICell[] {
   let e2xCellDetected: boolean = false;
   if (cells.length === 0) {
     return [];
@@ -82,7 +85,7 @@ export function sanitizeCells(cells: nbformat.ICell[], onE2xCellDetected?: () =>
       sanitizedCells.push(cell);
     }
   });
-  if(e2xCellDetected && onE2xCellDetected) {
+  if (e2xCellDetected && onE2xCellDetected) {
     onE2xCellDetected();
   }
   return sanitizedCells;

@@ -35,8 +35,8 @@ import {
   stopIcon
 } from '@jupyterlab/ui-components';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-import {RestrictedNotebookActions} from "./restrictedActions";
-import {ErrorNotifications} from "./ErrorNotifications";
+import { RestrictedNotebookActions } from './restrictedActions';
+import { ErrorNotifications } from './ErrorNotifications';
 
 /**
  * Add the notebook commands to the application's command registry.
@@ -124,7 +124,7 @@ export function addRestrictedCommands(
       );
       panel.content.activeCellChanged.connect(
         (notebook: Notebook, cell: Cell | null) => {
-          if(!cell) return;
+          if (!cell) return;
           NotebookActions.expandParent(cell, notebook);
         }
       );
@@ -750,7 +750,9 @@ export function addRestrictedCommands(
 
       if (current) {
         if (settings?.get('useSystemClipboardForCells').composite as boolean) {
-          return await RestrictedNotebookActions.cutToSystemClipboard(current.content);
+          return await RestrictedNotebookActions.cutToSystemClipboard(
+            current.content
+          );
         }
         return RestrictedNotebookActions.cut(current.content);
       }
@@ -798,7 +800,9 @@ export function addRestrictedCommands(
 
       if (current) {
         if (settings?.get('useSystemClipboardForCells').composite as boolean) {
-          return await RestrictedNotebookActions.copyToSystemClipboard(current.content);
+          return await RestrictedNotebookActions.copyToSystemClipboard(
+            current.content
+          );
         }
         return RestrictedNotebookActions.copy(current.content);
       }
@@ -1169,6 +1173,7 @@ export function addRestrictedCommands(
       } catch (err) {
         // browser limitation fallback (e.g Firefox)
         Clipboard.showPasteUnavailableDialog(trans);
+        console.warn(err);
       }
     },
 
@@ -1295,7 +1300,9 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        if(restrictedSettings?.get('canAddCellsToNotebooks').composite as boolean) {
+        if (
+          restrictedSettings?.get('canAddCellsToNotebooks').composite as boolean
+        ) {
           return NotebookActions.insertAbove(current.content);
         } else {
           ErrorNotifications.notifyE2xInsertCell(translator);
@@ -1324,7 +1331,9 @@ export function addRestrictedCommands(
       const current = getCurrent(tracker, shell, args);
 
       if (current) {
-        if(restrictedSettings?.get('canAddCellsToNotebooks').composite as boolean) {
+        if (
+          restrictedSettings?.get('canAddCellsToNotebooks').composite as boolean
+        ) {
           return NotebookActions.insertBelow(current.content);
         } else {
           ErrorNotifications.notifyE2xInsertCell(translator);

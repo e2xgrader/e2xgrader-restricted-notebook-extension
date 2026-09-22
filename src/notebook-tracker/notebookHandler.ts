@@ -57,10 +57,12 @@ const FACTORY = 'Notebook';
  */
 const SIDE_BY_SIDE_STYLE_ID = 'jp-NotebookExtension-sideBySideMargins';
 
-export const E2X_RESTRICTED_NOTEBOOK_TRACKER_PLUGIN_ID = '@e2xgrader/restricted-notebook-extension:notebook-tracker';
+export const E2X_RESTRICTED_NOTEBOOK_TRACKER_PLUGIN_ID =
+  '@e2xgrader/restricted-notebook-extension:notebook-tracker';
 const SETTINGS_ID = '@jupyterlab/notebook-extension:tracker';
 
-const RESTRICTED_SETTINGS_ID = '@e2xgrader/restricted-notebook-extension:tracker';
+const RESTRICTED_SETTINGS_ID =
+  '@e2xgrader/restricted-notebook-extension:tracker';
 
 export function activateNotebookHandler(
   app: JupyterFrontEnd,
@@ -114,17 +116,15 @@ export function activateNotebookHandler(
 
   // Fetch restricted settings if possible.
   const fetchRestrictedSettings = settingRegistry
-      ? settingRegistry.load(RESTRICTED_SETTINGS_ID)
-      : Promise.reject(
+    ? settingRegistry.load(RESTRICTED_SETTINGS_ID)
+    : Promise.reject(
         new Error(`No setting registry for ${RESTRICTED_SETTINGS_ID}`)
       );
 
   // Fetch settings if possible.
   const fetchSettings = settingRegistry
     ? settingRegistry.load(SETTINGS_ID)
-    : Promise.reject(
-        new Error(`No setting registry for ${SETTINGS_ID}`)
-      );
+    : Promise.reject(new Error(`No setting registry for ${SETTINGS_ID}`));
 
   Promise.all([fetchRestrictedSettings, fetchSettings])
     .then(([restrictedSettings, settings]) => {
@@ -277,7 +277,7 @@ export function activateNotebookHandler(
         null,
         isEnabled
       );
-    })
+    });
 
   if (formRegistry) {
     const CMRenderer = formRegistry.getRenderer(
